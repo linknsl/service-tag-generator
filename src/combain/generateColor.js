@@ -1,19 +1,13 @@
 // Установка пути к каталогу с файлами
-var folderPath = "D:\\design\\pdf_illustrator\\src\\sourceColor";
+var folderPath = $.fileName.split('\\').slice(0, -1).join('\\');
 var setQuantity = 19;
 var countTemplate = 1;
 var column = 12, quantity = Math.ceil(setQuantity / 6), line = Math.ceil(quantity / column), spacing = 2.5,
     stop = quantity;
-// Define the output directory path and log file path
-var logFilePath = folderPath + "/log.txt";
-
-var logFile = new File(logFilePath);
-logFile.open("w");
-logFile.close();
 
 // Получение списка файлов
-var files = Folder(folderPath).getFiles("*.ai");
-var outputFolder = new Folder(files[0].parent.fullName + "/../outputColor/"); // Путь к папке output, находящейся рядом с папкой source
+var files = Folder(folderPath + "/../../resources/template/Color").getFiles("*.ai");
+var outputFolder = new Folder(files[0].parent.fullName + "/../../../output/color"); // Путь к папке output, находящейся рядом с папкой source
 if (!outputFolder.exists) {
     outputFolder.create(); // Создание папки output, если она не существует
 } else {
@@ -22,6 +16,14 @@ if (!outputFolder.exists) {
         outfiles[r].remove();
     }
 }
+// Define the output directory path and log file path
+var logFilePath = outputFolder + "/log.txt";
+
+var logFile = new File(logFilePath);
+logFile.open("w");
+logFile.close();
+
+writeToLog("Script path: " + folderPath);
 // Обработка каждого файла
 writeToLog("Start script");
 writeToLog("quantity: " + quantity);
