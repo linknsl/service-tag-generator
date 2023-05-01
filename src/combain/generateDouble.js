@@ -1,17 +1,14 @@
 // Установка пути к каталогу с файлами
-var folderPath = "D:\\design\\pdf_illustrator\\src\\sourceDouble";
-var setQuantity = 1000;
+var folderPath = $.fileName.split('\\').slice(0, -1).join('\\');
+var pathgroup = "double"
+var setQuantity = 60;
 var countTemplate = 2;
-var column = 12, quantity = Math.ceil(setQuantity / 6), line = Math.ceil(quantity / column), spacing = 2.5,
-    stop = quantity * 2;
-var logFilePath = folderPath + "/log.txt";
+var column = 4, quantity = Math.ceil(setQuantity / 6), line = Math.ceil(quantity / column), spacing = 10,
+    stop = quantity * countTemplate;
 
-var logFile = new File(logFilePath);
-logFile.open("w");
-logFile.close();
 // Получение списка файлов
-var files = Folder(folderPath).getFiles("*.ai");
-var outputFolder = new Folder(files[0].parent.fullName + "/../outputDouble/"); // Путь к папке output, находящейся рядом с папкой source
+var files = Folder(folderPath + "/../../resources/template/" + pathgroup).getFiles("*.ai");
+var outputFolder = new Folder(files[0].parent.fullName + "/../../../output/" + pathgroup); // Путь к папке output, находящейся рядом с папкой source
 if (!outputFolder.exists) {
     outputFolder.create(); // Создание папки output, если она не существует
 } else {
@@ -20,6 +17,14 @@ if (!outputFolder.exists) {
         outfiles[r].remove();
     }
 }
+// Define the output directory path and log file path
+var logFilePath = outputFolder + "/log.txt";
+
+var logFile = new File(logFilePath);
+logFile.open("w");
+logFile.close();
+
+writeToLog("Script path: " + folderPath);
 // Обработка каждого файла
 writeToLog("Start script");
 writeToLog("quantity: " + quantity);
@@ -36,10 +41,11 @@ for (var f = 0; f < files.length; f++) {
     var doc = activeDocument
 
 // Copy Artwork
+    writeToLog("Start Copy Double");
     for (var i = 0; i < line; i++) {
         for (var j = 0; j < column; j++) {
             suffix = fillZero((i + 1), line.toString().length);
-            for (var template = 0; template < 2; template++) {
+            for (var template = 0; template < countTemplate; template++) {
                 if (count <= (stop - countTemplate)) {
                     writeToLog("added number sheet: " + count);
                     doc.artboards.setActiveArtboardIndex(template);
@@ -50,22 +56,25 @@ for (var f = 0; f < files.length; f++) {
             }
         }
     }
-
+    // deleteListTemplate(countTemplate);
+    redraw();
     doc.selection = null;
-    writeToLog("Start renumber");
-    for (j = 0; j < 2; j++) {
-        var k = 0
-        for (var montageAreaIndex = j; montageAreaIndex < doc.artboards.length; montageAreaIndex = montageAreaIndex + 2) {
-            writeToLog("renumber list: " + montageAreaIndex);
-            doc.artboards.setActiveArtboardIndex(montageAreaIndex);
-            doc.selectObjectsOnActiveArtboard();
-            replaceTextInTextFrames(montageAreaIndex, doc.artboards.length / 2 - 1 - k++)
-        }
-    }
+
+    /*    writeToLog("Start renumber");
+        for (j = 0; j < 2; j++) {
+            var k = 0
+            for (var montageAreaIndex = j; montageAreaIndex < doc.artboards.length; montageAreaIndex = montageAreaIndex + countTemplate) {
+                writeToLog("renumber list: " + montageAreaIndex);
+                doc.artboards.setActiveArtboardIndex(montageAreaIndex);
+                doc.selectObjectsOnActiveArtboard();
+                replaceTextInTextFrames(montageAreaIndex, doc.artboards.length / countTemplate - 1 - k++)
+            }
+        }*/
     doc.selection = null;
 
     // Сохранение файла в PDF-формате
-    for (outdoc = 0; outdoc < 10; outdoc++) {
+    // for (outdoc = 0; outdoc < 10; outdoc++) {
+    for (outdoc = 0; outdoc < 1; outdoc++) {
         if (outdoc > 0) {
             replaceTextAllfiles(outdoc);
         }
@@ -78,8 +87,27 @@ for (var f = 0; f < files.length; f++) {
         writeToLog("save file:" + pdfFile.toString());
         doc.saveAs(pdfFile, PDFSaveOptions);
     }
-    doc.close();
+    // doc.close();
     writeToLog("Finish:");
+}
+
+function deleteListTemplate(count) {
+    for (var i = 0; i < count; i++) {
+// Выбираем нужную монтажную область
+        doc.artboards.setActiveArtboardIndex(i);
+
+// Выбираем все объекты на активной монтажной области
+        doc.selectObjectsOnActiveArtboard();
+
+// Удаляем все выбранные объекты
+        while (doc.selection.length > 0) {
+            doc.selection[i].remove();
+        }
+
+    }
+    for (var i = 0; i < count; i++) {
+        doc.artboards[i].remove();
+    }
 }
 
 function replaceTextAllfiles(number) {
@@ -145,34 +173,19 @@ function duplicateArtboard(thisAbIdx, items, spacing, suffix, counter, row) {
     var doc = activeDocument,
         thisAb = doc.artboards[thisAbIdx],
         thisAbRect = thisAb.artboardRect,
-        thisAb2 = doc.artboards[thisAbIdx + 1],
-        thisAb2Rect = thisAb2.artboardRect,
-        idx = doc.artboards.length - 1,
-        lastAb = doc.artboards[idx],
-        lastAbRect = lastAb.artboardRect,
-        shift = thisAb2Rect[2] - thisAb2Rect[0] + spacing
-    abWidth = thisAbRect[2] - thisAbRect[0] + spacing + shift,
-        abHeight = thisAbRect[3] - thisAbRect[1] - spacing;
-
+        shiftWidth = ((thisAbRect[2] - thisAbRect[0]) * 2 + spacing) * (counter + 1),
+        shiftHeight = (thisAbRect[3] - thisAbRect[1] - spacing) * row;
 
     var newAb = doc.artboards.add(thisAbRect);
 
-    if (counter % column === 0) {
-        newAb.artboardRect = [
-            thisAbRect[0] + abWidth,
-            thisAbRect[1] + abHeight * row,
-            thisAbRect[2] + abWidth,
-            thisAbRect[3] + abHeight * row
-        ];
-    } else {
-        newAb.artboardRect = [
-            lastAbRect[2] + spacing,
-            lastAbRect[1],
-            lastAbRect[2] + (abWidth - shift),
-            lastAbRect[3]
-        ];
-    }
+    newAb.artboardRect = [
+        thisAbRect[0] + shiftWidth,
+        thisAbRect[1] + shiftHeight,
+        thisAbRect[2] + shiftWidth,
+        thisAbRect[3] + shiftHeight
+    ];
     newAb.name = thisAb.name + suffix;
+    thisAbRect = null;
 
     var docCoordSystem = CoordinateSystem.DOCUMENTCOORDINATESYSTEM,
         abCoordSystem = CoordinateSystem.ARTBOARDCOORDINATESYSTEM,
@@ -182,7 +195,7 @@ function duplicateArtboard(thisAbIdx, items, spacing, suffix, counter, row) {
     // Move copied items to the new artboard
     for (var i = 0; i < dupArr.length; i++) {
         var pos = isDocCoords ? dupArr[i].position : doc.convertCoordinate(dupArr[i].position, docCoordSystem, abCoordSystem);
-        dupArr[i].position = [pos[0] + abWidth * (counter + 1), pos[1] + abHeight * row];
+        dupArr[i].position = [pos[0] + shiftWidth, pos[1] + shiftHeight];
     }
 }
 

@@ -1,13 +1,14 @@
 // Установка пути к каталогу с файлами
 var folderPath = $.fileName.split('\\').slice(0, -1).join('\\');
-var setQuantity = 19;
+var pathgroup = "color"
+var setQuantity = 60;
 var countTemplate = 1;
-var column = 12, quantity = Math.ceil(setQuantity / 6), line = Math.ceil(quantity / column), spacing = 2.5,
-    stop = quantity;
+var column = 4, quantity = Math.ceil(setQuantity / 6), line = Math.ceil(quantity / column), spacing = 10,
+    stop = quantity * countTemplate;
 
 // Получение списка файлов
-var files = Folder(folderPath + "/../../resources/template/Color").getFiles("*.ai");
-var outputFolder = new Folder(files[0].parent.fullName + "/../../../output/color"); // Путь к папке output, находящейся рядом с папкой source
+var files = Folder(folderPath + "/../../resources/template/" + pathgroup).getFiles("*.ai");
+var outputFolder = new Folder(files[0].parent.fullName + "/../../../output/" + pathgroup); // Путь к папке output, находящейся рядом с папкой source
 if (!outputFolder.exists) {
     outputFolder.create(); // Создание папки output, если она не существует
 } else {
@@ -38,31 +39,36 @@ for (var f = 0; f < files.length; f++) {
     // Открытие файла в Illustrator
     var doc = app.open(file);
     var doc = activeDocument
-    curAbIdx = doc.artboards.getActiveArtboardIndex();
-
-    selection = null;
 
 // Copy Artwork
     writeToLog("Start Copy Double");
-    doc.selectObjectsOnActiveArtboard();
-    var abItems = selection;
     for (var i = 0; i < line; i++) {
         for (var j = 0; j < column; j++) {
-            if (count <= (stop - countTemplate)) {
-                writeToLog("added number list: " + count);
-                suffix = " copy" + fillZero((i + 1), line.toString().length);
-                duplicateArtboard(curAbIdx, abItems, spacing, suffix, j, i);
-                count++
+            suffix = fillZero((i + 1), line.toString().length);
+            for (var template = 0; template < countTemplate; template++) {
+                if (count <= stop) {
+                    writeToLog("added number sheet: " + count);
+                    doc.artboards.setActiveArtboardIndex(template);
+                    doc.selectObjectsOnActiveArtboard();
+                    duplicateArtboard(template, selection, spacing, suffix, j, i);
+                    count++
+                }
             }
         }
     }
-
+    deleteListTemplate(countTemplate);
+    redraw();
     doc.selection = null;
 
     writeToLog("Start renumber");
-    for (var montageAreaIndex = 0; montageAreaIndex < doc.artboards.length; montageAreaIndex++) {
-        writeToLog("renumber list: " + montageAreaIndex);
-        replaceTextInTextFrames(montageAreaIndex, doc.artboards.length - (montageAreaIndex + 1))
+    for (j = 0; j < countTemplate; j++) {
+        var k = 0
+        for (var montageAreaIndex = j; montageAreaIndex < doc.artboards.length; montageAreaIndex = montageAreaIndex + countTemplate) {
+            writeToLog("renumber list: " + montageAreaIndex);
+            doc.artboards.setActiveArtboardIndex(montageAreaIndex);
+            doc.selectObjectsOnActiveArtboard();
+            replaceTextInTextFrames(montageAreaIndex, doc.artboards.length / countTemplate - 1 - k++)
+        }
     }
     doc.selection = null;
 
@@ -71,15 +77,29 @@ for (var f = 0; f < files.length; f++) {
     writeToLog("save file:" + pdfFile.toString());
     doc.saveAs(pdfFile, PDFSaveOptions);
     doc.close();
+    writeToLog("Finish:");
+}
+
+function deleteListTemplate(count) {
+    for (var i = 0; i < count; i++) {
+// Выбираем нужную монтажную область
+        doc.artboards.setActiveArtboardIndex(i);
+
+// Выбираем все объекты на активной монтажной области
+        doc.selectObjectsOnActiveArtboard();
+
+// Удаляем все выбранные объекты
+        while (doc.selection.length > 0) {
+            doc.selection[i].remove();
+        }
+
+    }
+    for (var i = 0; i < count; i++) {
+    doc.artboards[i].remove();
+    }
 }
 
 function replaceTextInTextFrames(montageAreaIndex, numberAdd) {
-    // Выбираем нужную монтажную область
-    doc.artboards.setActiveArtboardIndex(montageAreaIndex);
-
-    // Выбираем все объекты на активной монтажной области
-    doc.selectObjectsOnActiveArtboard();
-
     // Получаем выделенные текстовые фреймы
     var textFrames = [];
     for (var i = 0; i < doc.selection.length; i++) {
