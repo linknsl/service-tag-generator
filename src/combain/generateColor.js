@@ -1,7 +1,7 @@
 // Установка пути к каталогу с файлами
 var folderPath = $.fileName.split('\\').slice(0, -1).join('\\');
 var pathgroup = "color"
-var setQuantity = 60;
+var setQuantity = 1000;
 var countTemplate = 1;
 var column = 4, quantity = Math.ceil(setQuantity / 6), line = Math.ceil(quantity / column), spacing = 10,
     stop = quantity * countTemplate;
