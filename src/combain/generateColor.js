@@ -46,7 +46,7 @@ for (var f = 0; f < files.length; f++) {
         for (var j = 0; j < column; j++) {
             suffix = fillZero((i + 1), line.toString().length);
             for (var template = 0; template < countTemplate; template++) {
-                if (count <= stop) {
+                if (count <= (stop - countTemplate)) {
                     writeToLog("added number sheet: " + count);
                     doc.artboards.setActiveArtboardIndex(template);
                     doc.selectObjectsOnActiveArtboard();
@@ -56,7 +56,7 @@ for (var f = 0; f < files.length; f++) {
             }
         }
     }
-    deleteListTemplate(countTemplate);
+    // deleteListTemplate(countTemplate);
     redraw();
     doc.selection = null;
 
@@ -95,8 +95,9 @@ function deleteListTemplate(count) {
 
     }
     for (var i = 0; i < count; i++) {
-    doc.artboards[i].remove();
+        doc.artboards[i].remove();
     }
+    doc.selection = null;
 }
 
 function replaceTextInTextFrames(montageAreaIndex, numberAdd) {
@@ -140,31 +141,19 @@ function duplicateArtboard(thisAbIdx, items, spacing, suffix, counter, row) {
     var doc = activeDocument,
         thisAb = doc.artboards[thisAbIdx],
         thisAbRect = thisAb.artboardRect,
-        idx = doc.artboards.length - 1,
-        lastAb = doc.artboards[idx],
-        lastAbRect = lastAb.artboardRect,
-        abWidth = thisAbRect[2] - thisAbRect[0] + spacing,
-        abHeight = thisAbRect[3] - thisAbRect[1] - spacing;
-
+        shiftWidth = ((thisAbRect[2] - thisAbRect[0]) * countTemplate + spacing) * (counter + 1),
+        shiftHeight = (thisAbRect[3] - thisAbRect[1] - spacing) * row;
 
     var newAb = doc.artboards.add(thisAbRect);
 
-    if (counter % column === 0) {
-        newAb.artboardRect = [
-            thisAbRect[0] + abWidth,
-            thisAbRect[1] + abHeight * row,
-            thisAbRect[2] + abWidth,
-            thisAbRect[3] + abHeight * row
-        ];
-    } else {
-        newAb.artboardRect = [
-            lastAbRect[2] + spacing,
-            lastAbRect[1],
-            lastAbRect[2] + abWidth,
-            lastAbRect[3]
-        ];
-    }
+    newAb.artboardRect = [
+        thisAbRect[0] + shiftWidth,
+        thisAbRect[1] + shiftHeight,
+        thisAbRect[2] + shiftWidth,
+        thisAbRect[3] + shiftHeight
+    ];
     newAb.name = thisAb.name + suffix;
+    thisAbRect = null;
 
     var docCoordSystem = CoordinateSystem.DOCUMENTCOORDINATESYSTEM,
         abCoordSystem = CoordinateSystem.ARTBOARDCOORDINATESYSTEM,
@@ -174,7 +163,7 @@ function duplicateArtboard(thisAbIdx, items, spacing, suffix, counter, row) {
     // Move copied items to the new artboard
     for (var i = 0; i < dupArr.length; i++) {
         var pos = isDocCoords ? dupArr[i].position : doc.convertCoordinate(dupArr[i].position, docCoordSystem, abCoordSystem);
-        dupArr[i].position = [pos[0] + abWidth * (counter + 1), pos[1] + abHeight * row];
+        dupArr[i].position = [pos[0] + shiftWidth, pos[1] + shiftHeight];
     }
 }
 

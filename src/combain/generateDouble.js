@@ -60,21 +60,20 @@ for (var f = 0; f < files.length; f++) {
     redraw();
     doc.selection = null;
 
-    /*    writeToLog("Start renumber");
-        for (j = 0; j < 2; j++) {
-            var k = 0
-            for (var montageAreaIndex = j; montageAreaIndex < doc.artboards.length; montageAreaIndex = montageAreaIndex + countTemplate) {
-                writeToLog("renumber list: " + montageAreaIndex);
-                doc.artboards.setActiveArtboardIndex(montageAreaIndex);
-                doc.selectObjectsOnActiveArtboard();
-                replaceTextInTextFrames(montageAreaIndex, doc.artboards.length / countTemplate - 1 - k++)
-            }
-        }*/
+    writeToLog("Start renumber");
+    for (j = 0; j < countTemplate; j++) {
+        var k = 0
+        for (var montageAreaIndex = j; montageAreaIndex < doc.artboards.length; montageAreaIndex = montageAreaIndex + countTemplate) {
+            writeToLog("renumber list: " + montageAreaIndex);
+            doc.artboards.setActiveArtboardIndex(montageAreaIndex);
+            doc.selectObjectsOnActiveArtboard();
+            replaceTextInTextFrames(montageAreaIndex, doc.artboards.length / countTemplate - 1 - k++)
+        }
+    }
     doc.selection = null;
 
     // Сохранение файла в PDF-формате
-    // for (outdoc = 0; outdoc < 10; outdoc++) {
-    for (outdoc = 0; outdoc < 1; outdoc++) {
+    for (outdoc = 0; outdoc < 10; outdoc++) {
         if (outdoc > 0) {
             replaceTextAllfiles(outdoc);
         }
@@ -87,7 +86,7 @@ for (var f = 0; f < files.length; f++) {
         writeToLog("save file:" + pdfFile.toString());
         doc.saveAs(pdfFile, PDFSaveOptions);
     }
-    // doc.close();
+    doc.close();
     writeToLog("Finish:");
 }
 
@@ -108,10 +107,10 @@ function deleteListTemplate(count) {
     for (var i = 0; i < count; i++) {
         doc.artboards[i].remove();
     }
+    doc.selection = null;
 }
 
 function replaceTextAllfiles(number) {
-    var doc = app.activeDocument;
     for (var i = 0; i < doc.textFrames.length; i++) {
         var textFrame = doc.textFrames[i];
         var textRange = textFrame.textRange;
@@ -173,7 +172,7 @@ function duplicateArtboard(thisAbIdx, items, spacing, suffix, counter, row) {
     var doc = activeDocument,
         thisAb = doc.artboards[thisAbIdx],
         thisAbRect = thisAb.artboardRect,
-        shiftWidth = ((thisAbRect[2] - thisAbRect[0]) * 2 + spacing) * (counter + 1),
+        shiftWidth = ((thisAbRect[2] - thisAbRect[0]) * countTemplate + spacing) * (counter + 1),
         shiftHeight = (thisAbRect[3] - thisAbRect[1] - spacing) * row;
 
     var newAb = doc.artboards.add(thisAbRect);
