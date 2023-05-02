@@ -73,19 +73,9 @@ for (var f = 0; f < files.length; f++) {
     doc.selection = null;
 
     // Сохранение файла в PDF-формате
-    for (outdoc = 0; outdoc < 10; outdoc++) {
-        if (outdoc > 0) {
-            replaceTextAllfiles(outdoc);
-        }
-        var numStr = String(1000 * outdoc);
-        while (numStr.length < 4) {
-            numStr = "0" + numStr;
-        }
-        writeToLog("Replace text in all documents: " + numStr);
-        var pdfFile = new File(outputFolder.fullName + "/" + file.name.replace(/\.ai$/, "") + "_" + numStr + ".pdf");
-        writeToLog("save file:" + pdfFile.toString());
-        doc.saveAs(pdfFile, PDFSaveOptions);
-    }
+    var pdfFile = new File(outputFolder.fullName + "/" + file.name.replace(/\.ai$/, "") + "_0000" + ".pdf");
+    writeToLog("save file:" + pdfFile.toString());
+    doc.saveAs(pdfFile, PDFSaveOptions);
     doc.close();
     writeToLog("Finish:");
 }
@@ -108,22 +98,6 @@ function deleteListTemplate(count) {
         doc.artboards[i].remove();
     }
     doc.selection = null;
-}
-
-function replaceTextAllfiles(number) {
-    for (var i = 0; i < doc.textFrames.length; i++) {
-        var textFrame = doc.textFrames[i];
-        var textRange = textFrame.textRange;
-        var contents = textRange.contents;
-
-        var replacedContents = contents.replace(/\b\d{4}\b/g, function (match) {
-            var num = parseInt(match, 10);
-            return String((num % 1000) + 1000 * number);
-        });
-        if (contents !== replacedContents) {
-            textRange.contents = replacedContents;
-        }
-    }
 }
 
 function replaceTextInTextFrames(montageAreaIndex, numberAdd) {
