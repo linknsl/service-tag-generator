@@ -116,15 +116,10 @@ function replaceTextAllfiles(number) {
         var textRange = textFrame.textRange;
         var contents = textRange.contents;
 
-        var replacedContents = contents.replace(/\b0{0,3}[0-9]{1,3}\b/g, function (match) {
+        var replacedContents = contents.replace(/\b\d{4}\b/g, function (match) {
             var num = parseInt(match, 10);
-            var numStr = String(num + 1000 * number);
-            while (numStr.length < 4) {
-                numStr = "0" + numStr;
-            }
-            return numStr;
+            return String((num % 1000) + 1000 * number);
         });
-
         if (contents !== replacedContents) {
             textRange.contents = replacedContents;
         }
