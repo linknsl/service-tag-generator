@@ -3,7 +3,7 @@ var folderPath = $.fileName.split('\\').slice(0, -1).join('\\');
 var pathgroup = "double";
 
 // Получение списка файлов
-var files = Folder(folderPath + "/../../output/" + pathgroup).getFiles("0_2_Green_Red_0000.pdf");
+var files = Folder(folderPath + "/../../output/" + pathgroup).getFiles("*.pdf");
 var outputFolder = new Folder(folderPath + "/../../output/" + pathgroup);
 if (!outputFolder.exists) {
     outputFolder.create();
@@ -16,33 +16,29 @@ logFile.open("w");
 logFile.close();
 
 writeToLog("Start script");
-for (var f = 0; f < files.length; f++) {
-    var count = 1;
-    writeToLog("Reading.... files:" + files.length);
-    var file = files[f];
-    writeToLog("Read file :" + file.toString());
-    // Открытие файла в Illustrator
-    var doc = app.open(file);
-    var doc = activeDocument
+var file = files[0];
+writeToLog("Read file :" + file.toString());
+// Открытие файла в Illustrator
+var doc = app.open(file);
+var doc = activeDocument
 
 
-    // Сохранение файла в PDF-формате
-    for (outdoc = 1; outdoc < 10; outdoc++) {
-        if (outdoc > 0) {
-            replaceTextAllfiles(outdoc);
-        }
-        var numStr = String(1000 * outdoc);
-        while (numStr.length < 4) {
-            numStr = "0" + numStr;
-        }
-        writeToLog("Replace text in all documents: " + numStr);
-        var pdfFile = new File(outputFolder.fullName + "/" + file.name.replace(/0000.pdf$/, "") + numStr + ".pdf");
-        writeToLog("save file:" + pdfFile.toString());
-        doc.saveAs(pdfFile, PDFSaveOptions);
+// Сохранение файла в PDF-формате
+for (outdoc = 1; outdoc < 10; outdoc++) {
+    if (outdoc > 0) {
+        replaceTextAllfiles(outdoc);
     }
-    doc.close();
-    writeToLog("Finish:");
+    var numStr = String(1000 * outdoc);
+    while (numStr.length < 4) {
+        numStr = "0" + numStr;
+    }
+    writeToLog("Replace text in all documents: " + numStr);
+    var pdfFile = new File(outputFolder.fullName + "/" + file.name.replace(/0000.pdf$/, "") + numStr + ".pdf");
+    writeToLog("save file:" + pdfFile.toString());
+    doc.saveAs(pdfFile, PDFSaveOptions);
 }
+doc.close();
+writeToLog("Finish:");
 
 function replaceTextAllfiles(number) {
     for (var i = 0; i < doc.textFrames.length; i++) {
